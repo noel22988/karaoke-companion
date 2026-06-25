@@ -158,8 +158,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="spacer"></div>
     <button class="btn btn-sm btn-ghost" id="btn-exit-vetter" style="padding:3px 10px">Exit</button>
   </div>
-  <div class="search-row"><input type="search" id="search-input" placeholder="Search songs or artists…"></div>
-  <div class="tabs">
+  <div class="search-row" style="display:flex;gap:8px">
+    <input type="search" id="search-input" placeholder="Search songs or artists…" style="flex:1">
+    <button class="btn btn-sm btn-ghost" id="sort-btn" title="Sort">&#x21C5; Song</button>
+  </div>
+  <div class="tabs" id="lib-tabs" style="display:none">
     <button class="tab active" data-tab="vetted">✓ Vetted</button>
     <button class="tab" data-tab="pending">Pending <span class="tab-count" id="pending-count">0</span></button>
   </div>
@@ -347,26 +350,45 @@ document.querySelectorAll('#vst .script-btn').forEach(function(b){
   };
 });
 
+var sortMode='title';
+
 function renderLib(){
   var q=document.getElementById('search-input').value.toLowerCase();
   var f=songs.filter(function(s){return(s.titleSimplified||s.title||'').toLowerCase().includes(q)||(s.titleTraditional||'').toLowerCase().includes(q)||(s.artist||'').toLowerCase().includes(q);});
-  var bt=f.filter(function(s){return s.status===(activeTab==='vetted'?'vetted':'pending');});
+  // Vetter sees tab-filtered, regular users see all
+  var bt;
+  if(isVetter){
+    bt=f.filter(function(s){return s.status===(activeTab==='vetted'?'vetted':'pending');});
+  } else {
+    bt=f;
+  }
+  // Sort
+  bt=bt.slice().sort(function(a,b){
+    if(sortMode==='artist'){
+      var aa=(a.artist||'').toLowerCase(),ba=(b.artist||'').toLowerCase();
+      return aa<ba?-1:aa>ba?1:0;
+    } else {
+      var at=dispTitle(a,gScript).toLowerCase(),bt2=dispTitle(b,gScript).toLowerCase();
+      return at<bt2?-1:at>bt2?1:0;
+    }
+  });
   document.getElementById('pending-count').textContent=songs.filter(function(s){return s.status==='pending';}).length;
   document.getElementById('vetter-bar').classList.toggle('hidden',!isVetter);
+  // Show/hide tabs based on vetter mode
+  document.getElementById('lib-tabs').style.display=isVetter?'':'none';
   var el=document.getElementById('lib-content');
   if(!bt.length){
-    el.innerHTML='<div class="empty"><div class="empty-icon">'+(activeTab==='vetted'?'\ud83c\udfb5':'\u23f3')+'</div><h3>'+(activeTab==='vetted'?'No vetted songs':'Queue empty')+'</h3><p>'+(activeTab==='vetted'?'Submit a song to get started!':'All caught up!')+'</p></div>';
+    el.innerHTML='<div class="empty"><div class="empty-icon">\ud83c\udfb5</div><h3>No songs found</h3><p>Submit a song to get started!</p></div>';
     return;
   }
   var grid=document.createElement('div');grid.className='song-grid';
   bt.forEach(function(s){
     var i=songs.indexOf(s),chars=s.charsSimplified||s.chars||[];
     var cc=chars.filter(function(c){return c.hz&&c.hz.trim()&&c.hz!=='\n'&&!isPunct(c.hz);}).length;
-    var pc=chars.filter(function(c){return c.poly&&!c.edited;}).length;
     var dt=dispTitle(s,gScript),at=dispTitle(s,gScript==='simplified'?'traditional':'simplified');
-    var badge=s.status==='vetted'?'<span class="badge badge-g">\u2713</span>':'<span class="badge badge-a">\u23f3</span>';
+    var pendingBadge=s.status==='pending'?'<span class="badge badge-a">\u23f3 Pending</span>':'';
     var card=document.createElement('div');card.className='song-card'+(s.status==='pending'?' pending':'');
-    card.innerHTML='<div class="sc-title">'+dt+'</div><div class="sc-alt">'+at+'</div><div class="sc-artist">'+(s.artist||'\u2014')+'</div><div class="sc-meta"><span class="sc-count">'+cc+' chars'+(pc?' \xb7 '+pc+' \u591a\u97f3\u5b57':'')+'</span>'+badge+'</div>';
+    card.innerHTML='<div class="sc-title">'+dt+'</div><div class="sc-alt">'+at+'</div><div class="sc-artist">'+(s.artist||'\u2014')+'</div><div class="sc-meta"><span class="sc-count">'+cc+' chars</span>'+pendingBadge+'</div>';
     card.onclick=function(){viewSong(i);};
     grid.appendChild(card);
   });
@@ -670,6 +692,11 @@ document.getElementById('btn-export').onclick=function(){
   a.click();
 };
 document.getElementById('search-input').oninput=renderLib;
+document.getElementById('sort-btn').onclick=function(){
+  sortMode=sortMode==='title'?'artist':'title';
+  document.getElementById('sort-btn').innerHTML='&#x21C5; '+(sortMode==='title'?'Song':'Artist');
+  renderLib();
+};
 loadAll();
 </script>
 </body>
