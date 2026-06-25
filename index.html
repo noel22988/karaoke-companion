@@ -500,10 +500,7 @@ function makeSongCard(s) {
 
 function sortGroupKeys(keys) {
   return keys.sort(function(a, b) {
-    if (a === 'ZH' && b === '#') return -1;
-    if (a === '#' && b === 'ZH') return 1;
     if (a === '#') return 1; if (b === '#') return -1;
-    if (a === 'ZH') return 1; if (b === 'ZH') return -1;
     return a < b ? -1 : a > b ? 1 : 0;
   });
 }
