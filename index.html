@@ -134,6 +134,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .alpha-grid{margin-bottom:1.5rem}
 .alpha-hdr.collapsed{margin-bottom:0}
 @media(max-width:500px){.form-row{flex-direction:column}.song-grid{grid-template-columns:1fr 1fr}.tone-btn{font-size:13px;padding:6px 2px}.preview-both{flex-direction:column}.header-actions{gap:5px}}
+.sc-pinyin{font-size:11px;color:var(--accent);letter-spacing:0.04em;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-artist-py{color:var(--text3);margin-top:1px}
 </style>
 </head>
 <body>
@@ -429,8 +431,9 @@ function renderSingersAccordion(bt, el) {
         var grid = document.createElement('div'); grid.className = 'song-grid alpha-grid';
         groups[k].forEach(function(name) {
           var scount = singerMap[name].length;
+          var singerPy = toPinyin(name);
           var card = document.createElement('div'); card.className = 'song-card singer-card';
-          card.innerHTML = '<div class="sc-title">' + name + '</div><div class="sc-artist">' + scount + ' song' + (scount !== 1 ? 's' : '') + '</div>';
+          card.innerHTML = '<div class="sc-title">' + name + '</div>' + (singerPy ? '<div class="sc-pinyin">' + singerPy + '</div>' : '') + '<div class="sc-artist">' + scount + ' song' + (scount !== 1 ? 's' : '') + '</div>';
           card.onclick = function() { currentSinger = name; renderLib(); };
           grid.appendChild(card);
         });
@@ -554,7 +557,7 @@ function refreshView(){
   var st=s.titleSimplified||s.title||'',tt=s.titleTraditional||cvScript(st,'traditional');
   var ip=s.status==='pending';
   document.getElementById('view-title').textContent=vScript==='traditional'?tt:st;
-  document.getElementById('view-alt').textContent=vScript==='traditional'?st:tt;
+  document.getElementById('view-alt').textContent='';
   document.getElementById('view-artist').textContent=s.artist||'';
   document.getElementById('pend-banner').classList.toggle('hidden',!ip);
   document.getElementById('vetter-actions').style.display=isVetter?'flex':'none';
