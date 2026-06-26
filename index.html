@@ -474,11 +474,30 @@ function renderSingerSongs(bt, el) {
 function makeSongCard(s) {
   var i = songs.indexOf(s);
   var dt = dispTitle(s, gScript);
+  var titlePy = toPinyin(s.titleSimplified || s.title || '');
+  var artist = s.artist || '';
+  var artistPy = toPinyin(artist);
   var pendingBadge = s.status === 'pending' ? '<span class="badge badge-a">Pending</span>' : '';
   var card = document.createElement('div'); card.className = 'song-card' + (s.status === 'pending' ? ' pending' : '');
-  card.innerHTML = '<div class="sc-title">' + dt + '</div><div class="sc-artist">' + (s.artist || '—') + '</div>' + (pendingBadge ? '<div style="margin-top:8px">' + pendingBadge + '</div>' : '');
+  card.innerHTML =
+    '<div class="sc-title">' + dt + '</div>' +
+    (titlePy ? '<div class="sc-pinyin">' + titlePy + '</div>' : '') +
+    '<div class="sc-artist">' + (artist || '—') + '</div>' +
+    (artistPy && artist ? '<div class="sc-pinyin sc-artist-py">' + artistPy + '</div>' : '') +
+    (pendingBadge ? '<div style="margin-top:8px">' + pendingBadge + '</div>' : '');
   card.onclick = function() { viewSong(i); };
   return card;
+}
+
+function toPinyin(text) {
+  if (!text) return '';
+  return text.split('').map(function(ch) {
+    if (/[\s\n]/.test(ch)) return '';
+    if (isPunct(ch)) return '';
+    var simp = T2S[ch] || ch;
+    var py = PD[simp] || PD[ch] || '';
+    return py || '';
+  }).filter(Boolean).join(' ');
 }
 
 
