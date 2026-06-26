@@ -470,13 +470,10 @@ function renderSingerSongs(bt, el) {
 
 function makeSongCard(s) {
   var i = songs.indexOf(s);
-  var chars = s.charsSimplified || s.chars || [];
-  var cc = chars.filter(function(c) { return c.hz && c.hz.trim() && c.hz !== '\n' && !isPunct(c.hz); }).length;
   var dt = dispTitle(s, gScript);
-  var at = dispTitle(s, gScript === 'simplified' ? 'traditional' : 'simplified');
   var pendingBadge = s.status === 'pending' ? '<span class="badge badge-a">Pending</span>' : '';
   var card = document.createElement('div'); card.className = 'song-card' + (s.status === 'pending' ? ' pending' : '');
-  card.innerHTML = '<div class="sc-title">' + dt + '</div><div class="sc-alt">' + at + '</div><div class="sc-artist">' + (s.artist || '-') + '</div><div class="sc-meta"><span class="sc-count">' + cc + ' chars</span>' + pendingBadge + '</div>';
+  card.innerHTML = '<div class="sc-title">' + dt + '</div><div class="sc-artist">' + (s.artist || '—') + '</div>' + (pendingBadge ? '<div style="margin-top:8px">' + pendingBadge + '</div>' : '');
   card.onclick = function() { viewSong(i); };
   return card;
 }
